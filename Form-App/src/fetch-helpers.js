@@ -32,7 +32,7 @@ const postDiscoveredPokemon = async (formData) =>{
         const response = await fetch("https://formspree.io/f/mreegkrb", {
             method: "POST",
             body: JSON.stringify(formData),
-            header: {
+            headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }

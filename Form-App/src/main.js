@@ -1,35 +1,44 @@
-import { getRandomPokemon } from "./fetch-helpers.js";
-import { renderPokemon } from "./dom-helpers.js";
-import { renderError } from "./dom-helpers.js";
-import { renderSuccess } from "./dom-helpers.js";
+import { getRandomPokemon, postDiscoveredPokemon } from "./fetch-helpers.js";
+import { renderPokemon, renderError, renderSuccess } from "./dom-helpers.js";
 
-const getAndRenderPokemon = async () =>{
-    try{
-          const callPokemon = await getRandomPokemon()
-
-    if (callPokemon.error){
-        renderSuccess("")
-        renderError(callPokemon.error.message)
-        return
+const getAndRenderPokemon = async () => {
+  try {
+    const callPokemon = await getRandomPokemon();
+    if (callPokemon.error) {
+      renderSuccess("");
+      renderError(callPokemon.error.message);
+      return;
     }
     renderPokemon(callPokemon.data);
     renderSuccess(`${callPokemon.data.name} was discovered!`);
     renderError("");
+  } catch (err) {
+    console.error("Error: unable to capture Pokémon. Please try again later", err);
+  }
+};
 
-    //  Form Submission Part 2C
-    captureButton.addEventListener('sumbit', async (event) =>{
-    event.preventDefault()
+getAndRenderPokemon();
 
+const button = document.getElementById("discover-button");
+button.addEventListener('click', getAndRenderPokemon);
 
+const captureForm = document.getElementById("capture-form");
+captureForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
 
-    captureButton.rest();
-})
+  const formData = new FormData(captureForm);
+  const formValues = Object.fromEntries(formData);
+  formValues.isFavorite = captureForm.elements.isFavorite.checked; 
 
-    } catch (err){
-        console.error("Error: unable to capture Pokémon. Please try again later" , err )
-    }
-}
-  
+  const { data, error } = await postDiscoveredPokemon(formValues);
 
-const button = document.getElementById("discover-button")
-button.addEventListener('click', getAndRenderPokemon)
+  if (error) {
+    renderError("Error: unable to capture Pokémon. Please try again later"); 
+    renderSuccess("");
+    return;
+  }
+
+  renderSuccess(`${formValues.name} has been captured!`); 
+  renderError("");
+  captureForm.reset();
+});
